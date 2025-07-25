@@ -1,0 +1,55 @@
+---
+title: "Installation instructions for hicream"
+author: "Elise Jorge, Sylvain Foissac, Pierre Neuvial, and Nathalie Vialaneix"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: yes
+vignette: >
+  %\VignetteIndexEntry{Installation instructions for hicream}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# AWK
+
+`hicream` requires the `awk` command to be installed on your system. If you are 
+using a Unix-based system, `awk` is likely already installed. If you are using 
+Windows a [cywgin](https://www.cygwin.com/) version of `awk` is searched for by 
+the package. You can install `awk` by downloading the Gawk package from the GNU
+website: https://www.gnu.org/software/gawk/.
+
+More about AWK: https://en.wikipedia.org/wiki/AWK
+
+
+# Python dependencies
+
+`hicream` requires the `python` command to be installed on your system (>=3.9).
+Additional Python packages (`scikit-learn`, `kneebow`, `numpy`, and `pandas`) 
+are also required.
+
+More about used Python packages:
+
+* scikit-learn: https://scikit-learn.org/stable/
+* kneebow: https://pypi.org/project/kneebow/
+* pandas: https://pandas.pydata.org/
+
+To install Python modules, please check "Installing Python modules" in 
+[Python documentation](https://docs.python.org). With pip:
+```
+pip install scikit-learn
+pip install kneebow
+pip install pandas
+pip install numpy
+```
+
+# Session information
+
+```{r}
+sessionInfo()
+```
+

@@ -1,0 +1,161 @@
+---
+title: "Introduction to hicream"
+author: "Elise Jorge, Sylvain Foissac, Pierre Neuvial, et Nathalie Vialaneix"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: yes
+vignette: >
+  %\VignetteIndexEntry{Introduction to hicream}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+# Introduction 
+
+`hicream` is an **R** package designed to perform Hi-c data differential 
+analysis. More specifically, it performs a pixel-level differential analysis 
+using `diffHic` and, using a two-dimensionnal connectivity constrained 
+clustering, renders a post hoc bound on True Discovery Proportion for each 
+cluster. This method allows to identify differential genomic regions and 
+quantifies signal in those regions. 
+
+```{r loadLib}
+library("hicream")
+# checking if Python and Python modules are available to avoid errors in vignette building
+modules_avail <- reticulate::py_available(initialize = TRUE) &&
+  reticulate::py_module_available("sklearn") &&
+  reticulate::py_module_available("kneebow") &&
+  reticulate::py_module_available("pandas") &&
+  reticulate::py_module_available("numpy")
+```
+
+
+## How to load external data?
+
+Using `hicream` requires to load data that corresponds to Hi-C matrices and 
+their index, the latter in bed format. In the following code, the paths to Hi-C 
+matrices and the index file path are used in the `loadData` function alongside
+the chromosome number. The option `normalize = TRUE` allows to perform a cyclic 
+LOESS normalization. The output is an `InteractionSet` object. 
+
+```{r loadData}
+replicates <- 1:2
+cond <- "90"
+allBegins <- interaction(expand.grid(replicates, cond), sep = "-")
+allBegins <- as.character(allBegins)
+chromosome <- 1
+nbChr <- 1
+allMat <- sapply(allBegins, function(ab) {
+  matFile <- paste0("Rep", ab, "-chr", chromosome, "_200000.bed")
+})
+index <- system.file("extdata", "index.200000.longest18chr.abs.bed",
+                     package = "hicream")
+format <- rep("HiC-Pro", length(replicates) * length(cond) * nbChr)
+binsize <- 200000
+files <- system.file("extdata", unlist(allMat), package = "hicream")
+exData <- loadData(files, index, chromosome, normalize = TRUE)
+```
+
+
+## `pighic` dataset 
+
+The `pighic` dataset has been produced using 6 Hi-C matrices (3 in each 
+condition) obtained from two different developmental stages of pig embryos (90 
+and 110 days of gestation) corresponding to chromosome 1. The dataset contains 
+two elements, the first is an output of the `loadData` function corresponding to
+normalized data. The second is the vector giving, for each matrix, the condition
+it belongs to. 
+
+```{r pighic}
+data("pighic")
+head(pighic)
+```
+
+
+# Perform `hicream` test
+
+Once data have been loaded, the three steps of the analysis can be performed. 
+
+## Use `performTest` function
+
+In this first step, the output of a `loadData` object is used, with a vector 
+indicating the condition of each sample. Here, we use data stored in `pighic`. 
+`performTest` outputs the result of the `diffHic` pixel-level differential 
+analysis. 
+
+```{r performTest, hold=TRUE}
+resdiff <- performTest(pighic$data, pighic$conditions)
+resdiff
+summary(resdiff)
+```
+
+Several plotting options allow to look at the $p$-value map, adjusted $p$-value
+map or log-fold-change map. 
+
+```{r plotPerformTest}
+plot(resdiff)
+plot(resdiff, which_plot = "p.adj")
+plot(resdiff, which_plot = "logFC")
+```
+
+
+## Perform two-dimensionnal connectivity-constrained clustering
+
+The `AggloClust2D` function uses the output of `loadData` function in order to 
+build a connectivity graph of pixels and perform a two-dimensionnal hierarchical
+clustering under the connectivity constraint. The function renders a clustering 
+corresponding to the optimal number of clusters found by the elbow heuristic. 
+However, a clustering corresponding to any other number of clusters (chosen by
+the user) can be obtained by specifying a value for the input argument 
+`nbClust`. 
+
+```{r AggloClust2D}
+if (modules_avail) {
+  res2D <- AggloClust2D(pighic$data)
+  res2D 
+  summary(res2D)
+}
+```
+
+Plotting the output shows the tree that corresponds to the hierarchy of 
+clusters.
+
+```{r plotAggloClust2D}
+if (modules_avail) {
+  plot(res2D)
+}
+```
+
+
+## Perform post hoc inference
+
+Post hoc inference is performed by the `postHoc` function, using the output 
+of `performTest`, and a clustering (the latter can be obtained with 
+`AggloClust2D`). The user sets a level of test confidence $\alpha$, typically 
+equal to $0.05$. 
+
+```{r postHoc}
+if (modules_avail) {
+  clusters <- res2D$clustering
+  alpha <- 0.05
+  resposthoc <- postHoc(resdiff, clusters, alpha)
+  resposthoc
+  summary(resposthoc)
+}
+```
+
+Plotting the output of `postHoc` function shows the minimal proportion of True 
+Discoveries in each cluster. 
+
+```{r plotPostHoc}
+if (modules_avail) plot(resposthoc)
+```
+
+
+# Session Information
+
+```{r sessionInfo}
+sessionInfo()
+```

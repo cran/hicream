@@ -1,0 +1,48 @@
+Package: hicream
+Title: HI-C diffeREntial Analysis Method
+Version: 0.0.1
+Date: 2025-07-23
+Maintainer: Elise Jorge <elise.jorge@inrae.fr>
+Authors@R: c(
+    person("Elise", "Jorge", , "elise.jorge@inrae.fr", role = c("aut", "cre")),
+    person("Sylvain", "Foissac", , "sylvain.foissac@inrae.fr", role = "aut"),
+    person("Pierre", "Neuvial", , "pierre.neuvial@math.univ-toulouse.fr", 
+           role = "aut", comment = c(ORCID = "0000-0003-3584-9998")),
+    person("Nathalie", "Vialaneix", , "nathalie.vialaneix@inrae.fr", 
+           role = "aut", comment = c(ORCID = "0000-0003-1156-0639")),
+    person("Gilles", "Blanchard", role = "ctb"), 
+    person("Guillermo", "Durand", role= "ctb", 
+           comment = c(ORCID = "0000-0003-4056-5631")),
+    person("Nicolas", "Enjalbert-Courrech", role = "ctb"),
+    person("Etienne", "Roquain", role = "ctb")
+  )
+Description: Perform Hi-C data differential analysis based on pixel-level
+    differential analysis and a post hoc inference strategy to quantify
+    signal in clusters of pixels. Clusters of pixels are obtained through
+    a connectivity-constrained two-dimensional hierarchical clustering.
+License: GPL (>= 3)
+URL: https://forgemia.inra.fr/scales/hicream
+BugReports: https://forgemia.inra.fr/scales/hicream/-/issues
+Depends: R (>= 4.0.0), reticulate
+SystemRequirements: Python (>= 3.9)
+Imports: adjclust, auk, BiocGenerics, csaw, diffHic, dplyr, edgeR,
+        GenomeInfoDb, GenomicRanges, InteractionSet, limma, Matrix,
+        methods, reshape2, rlang, S4Vectors, stats,
+        SummarizedExperiment, utils, viridis
+Suggests: knitr, rmarkdown
+Encoding: UTF-8
+RoxygenNote: 7.3.2
+VignetteBuilder: knitr
+NeedsCompilation: no
+Packaged: 2025-07-23 14:26:38 UTC; nathalie
+Author: Elise Jorge [aut, cre],
+  Sylvain Foissac [aut],
+  Pierre Neuvial [aut] (ORCID: <https://orcid.org/0000-0003-3584-9998>),
+  Nathalie Vialaneix [aut] (ORCID:
+    <https://orcid.org/0000-0003-1156-0639>),
+  Gilles Blanchard [ctb],
+  Guillermo Durand [ctb] (ORCID: <https://orcid.org/0000-0003-4056-5631>),
+  Nicolas Enjalbert-Courrech [ctb],
+  Etienne Roquain [ctb]
+Repository: CRAN
+Date/Publication: 2025-07-25 15:40:02 UTC
