@@ -36,6 +36,7 @@ More about used Python packages:
 
 * scikit-learn: https://scikit-learn.org/stable/
 * kneebow: https://pypi.org/project/kneebow/
+* numpy: https://numpy.org/
 * pandas: https://pandas.pydata.org/
 
 To install Python modules, please check "Installing Python modules" in 
@@ -43,8 +44,8 @@ To install Python modules, please check "Installing Python modules" in
 ```
 pip install scikit-learn
 pip install kneebow
-pip install pandas
 pip install numpy
+pip install pandas
 ```
 
 # Session information

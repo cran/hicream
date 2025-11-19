@@ -8,6 +8,12 @@
 #' @param clusters A vector corresponding to a clustering of resdiff rows.
 #' @param alpha A number between 0 and 1 at which the computed post hoc bounds
 #' will be valid.
+#' @param fill A boolean value. If TRUE (the default), enforce the total 
+#' number of tests to be \emph{p*(p+1)/2} by adding ones to the p-value vector 
+#' for non tested entries.
+#' @param stepDown A boolean value. If FALSE, the single step Simes method is
+#' used. If TRUE (the default), the step-down Simes method is used. The latter
+#' is more powerful when the signal is strong.
 #'
 #' @return An object of class \code{resposthoc} containing a matrix with true
 #' positive proportions for each interaction and a dataframe with the following
@@ -29,6 +35,7 @@
 #'
 #' @author Élise Jorge \email{elise.jorge@inrae.fr}\cr
 #' Sylvain Foissac \email{sylvain.foissac@inrae.fr}\cr
+#' Toby Dylan Hocking \email{toby.hocking@r-project.org}\cr
 #' Pierre Neuvial \email{pierre.neuvial@math.univ-toulouse.fr}\cr
 #' Nathalie Vialaneix \email{nathalie.vialaneix@inrae.fr}
 #'
@@ -64,11 +71,10 @@
 #'   plot(resposthoc)
 #' }}
 
-postHoc <- function(resdiff, clusters, alpha) {
+postHoc <- function(resdiff, clusters, alpha, fill = FALSE, stepDown = TRUE) {
   uniqueBins <- unique(c(resdiff$region1, resdiff$region2))
   p <- max(uniqueBins) - min(uniqueBins) + 1
   matPostHoc <- matrix(0, p, p)
-  m <- p * (p + 1) / 2 # Total number of interactions to consider in theory.
   diffPvalInd <- c(resdiff$p.value, 1)
   matPval <- matrix(length(diffPvalInd), p, p) # Untested interactions
   # have a p-value of one. Put at last position in p-value vector.
@@ -88,12 +94,19 @@ postHoc <- function(resdiff, clusters, alpha) {
     elem <- pixels[clusters == ab]
     return(elem)
   })
+  ## define Simes thresholds
+  pvals <- resdiff$p.value
+  if (fill) {  # add 1:s for untested interactions
+    m <- p * (p + 1) / 2 # Total number of interactions to consider in theory
+    nb_ones <- m - length(resdiff$p.value)
+    pvals <- c(pvals, rep(1, nb_ones)) 
+  }
+  thrSimes <- getSimesThresholds(pvals, alpha, stepDown = stepDown)
   for (i in 1:length(clusters)) {
     clusterElem <- clusters[[i]]
     clustBins1 <- resdiff$region1[clusterElem] - min(uniqueBins) + 1
     clustBins2 <- resdiff$region2[clusterElem] - min(uniqueBins) + 1
     indPval <- matPval[cbind(clustBins1, clustBins2)]
-    thrSimes <- alpha * (1:m) / m # Choose Simes method
     # Compute upper bound on number of false positives
     FP <- curveMaxFP(diffPvalInd[indPval], thrSimes)
     tot <- length(clusterElem)
@@ -162,7 +175,7 @@ print.resposthoc <- function(x, ...) {
   cat("\n\n")
 
   ## Print the dataframe
-  print(x$dfres, max = 10)
+  print(x$dfres, n = 10)
 }
 
 

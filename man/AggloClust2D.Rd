@@ -5,7 +5,7 @@
 \alias{print.res2D}
 \alias{summary.res2D}
 \alias{plot.res2D}
-\title{Performs Constrained 2D Agglomerative Clustering}
+\title{Perform Constrained 2D Agglomerative Clustering}
 \usage{
 AggloClust2D(counts, nbClust = NULL)
 
@@ -18,7 +18,9 @@ AggloClust2D(counts, nbClust = NULL)
 \arguments{
 \item{counts}{an object of class
 \code{\link[InteractionSet:interactions]{InteractionSet}} obtained from the
-function \code{\link{loadData}}.}
+function \code{\link{loadData}} or an object of class
+\code{resdiff} obtained from
+function \code{\link{performTest}}.}
 
 \item{nbClust}{integer. Number of clusters to obtain. Set to \code{NULL} by
 default.}
@@ -47,18 +49,20 @@ heuristic.
 }
 \examples{
 data("pighic")
-\donttest{res2D <- AggloClust2D(pighic$data)
-if (!is.null(res2D)) {# in case Python or modules are not available
+\donttest{
+res2D <- AggloClust2D(pighic$data)
+if (!is.null(res2D)) { # in case Python or modules are not available
   clusters <- res2D$clustering
   print(res2D)
   summary(res2D)
   plot(res2D)
-}}
-
+}
+}
 }
 \author{
 Élise Jorge \email{elise.jorge@inrae.fr}\cr
 Sylvain Foissac \email{sylvain.foissac@inrae.fr}\cr
+Toby Dylan Hocking \email{toby.hocking@r-project.org}\cr
 Pierre Neuvial \email{pierre.neuvial@math.univ-toulouse.fr}\cr
 Nathalie Vialaneix \email{nathalie.vialaneix@inrae.fr}
 }

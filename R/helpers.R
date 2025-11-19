@@ -134,13 +134,10 @@ fromAgglomerative2hclust <- function(merge, height, call) {
   return(hc)
 }
 
+#### for postHoc ####
+
 # Upper bound for the number of false discoveries among most significant items
-# Taken from R package 'sousoucis' (on github)
-# Courtesy of Gilles Blanchard, Nicolas Enjalbert-Courrech, Pierre Neuvial, and
-#   Etienne Roquain
-# Reference: Enjalbert-Courrech, N. & Neuvial, P. (2022). Powerful and 
-#   interpretable control of false discoveries in two-group differential 
-#   expression studies. Bioinformatics. doi: 10.1093/bioinformatcs/btac693
+# Taken from R package 'sousoucis' https://github.com/sanssouci-org/sanssouci
 curveMaxFP <- function(p.values, thr) {
   s <- length(p.values)
   if (s == 0) {
@@ -179,5 +176,51 @@ curveMaxFP <- function(p.values, thr) {
   A <- Z - (1:s) + 1
   cA <- cummax(A)[K[ww]]  # cA[i] = max_{k<K[i]} A[k]
   Vbar[ww] <- pmin(ww - cA, K[ww])
-  Vbar
+  
+  return(Vbar)
 }
+
+# Upper bound for the number of false null hypotheses among most significant 
+# items
+# Note: roxygen comments not interpreted but kept for dev information
+#
+# @param p.values A vector containing m p-values
+# @param alpha A numeric value between 0 and 1, the targed risk level
+# @param stepDown A boolean value. If TRUE (the default), the adaptive
+# (step-down) method is used. If FALSE, the single-step method is used.
+# @return thr A vector of \eqn{m_0} JER-controlling thresholds based on the Simes
+# family of the form \code{alpha*k/m_0} for \eqn{1 \leq k \leq m_0}
+# @details The default adaptive (step-down) method is at least as powerful (and
+# possibly more) than the single-step method. Its complexity is still $O(m)$
+# since it applies 'curveMaxFP' a small number of times. Therefore it should
+# be preferred.
+# @examples
+#stat <- c(rnorm(1000, mean = c(1:1000)/1000*5, sd = 1), 
+#          rnorm(100, mean = 0, sd = 1))
+# pvals <- 2*(1 - pnorm(abs(stat)))
+# thr <- hicream:::getSimesThresholds(pvals, 0.05)
+# str(thr)
+# tail(hicream:::curveMaxFP(pvals, thr))
+# thr <- hicream:::getSimesThresholds(pvals, 0.05, stepDown = FALSE)
+# str(thr)
+# tail(hicream:::curveMaxFP(pvals, thr))}
+
+getSimesThresholds <- function(p.values, alpha, stepDown = TRUE) {
+  m <- length(p.values)
+  thrSimes <- alpha * (1:m) / m # single-step
+  if (stepDown) {
+    m0_hat0 <- m
+    FP <- curveMaxFP(p.values, thrSimes)
+    m0_hat <- FP[m]
+    thrSimes <- alpha * (1:m0_hat) / m0_hat # one step down
+    while (m0_hat < m0_hat0) { # stepping down as needed
+      m0_hat0 <- m0_hat
+      FP <- curveMaxFP(p.values, thrSimes)
+      m0_hat <- FP[m]
+      thrSimes <- alpha * (1:m0_hat) / m0_hat
+    }
+  }
+  
+  return(thrSimes)
+}
+

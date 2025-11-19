@@ -16,13 +16,13 @@ vignette: >
 
 `hicream` is an **R** package designed to perform Hi-c data differential 
 analysis. More specifically, it performs a pixel-level differential analysis 
-using `diffHic` and, using a two-dimensionnal connectivity constrained 
+using `diffHic` and, using a two-dimensional connectivity constrained 
 clustering, renders a post hoc bound on True Discovery Proportion for each 
 cluster. This method allows to identify differential genomic regions and 
 quantifies signal in those regions. 
 
 ```{r loadLib}
-library("hicream")
+library("hicream", warn.conflicts = FALSE)
 # checking if Python and Python modules are available to avoid errors in vignette building
 modules_avail <- reticulate::py_available(initialize = TRUE) &&
   reticulate::py_module_available("sklearn") &&
@@ -96,26 +96,38 @@ map or log-fold-change map.
 
 ```{r plotPerformTest}
 plot(resdiff)
-plot(resdiff, which_plot = "p.adj")
-plot(resdiff, which_plot = "logFC")
+plot(resdiff, whichPlot = "p.adj")
+plot(resdiff, whichPlot = "logFC")
 ```
 
 
-## Perform two-dimensionnal connectivity-constrained clustering
+## Perform two-dimensional connectivity-constrained clustering
 
-The `AggloClust2D` function uses the output of `loadData` function in order to 
-build a connectivity graph of pixels and perform a two-dimensionnal hierarchical
-clustering under the connectivity constraint. The function renders a clustering 
-corresponding to the optimal number of clusters found by the elbow heuristic. 
-However, a clustering corresponding to any other number of clusters (chosen by
-the user) can be obtained by specifying a value for the input argument 
-`nbClust`. 
+The `AggloClust2D` function uses either the output of `loadData` or `resdiff` 
+functions. If the output of `loadData` is used, the clustering is performed on 
+the counts. Using the output of `resdiff` amounts to performing clustering on 
+adjusted $p$-values and log-fold-changes. 
 
-```{r AggloClust2D}
+In both cases, a connectivity graph of pixels is built and a two-dimensional
+hierarchical clustering under the connectivity constraint is performed. The 
+function renders a clustering corresponding to the optimal number of clusters 
+found by the elbow heuristic. However, a clustering corresponding to any other 
+number of clusters (chosen by the user) can be obtained by specifying a value 
+for the input argument `nbClust`. 
+
+```{r AggloClust2D_counts}
 if (modules_avail) {
-  res2D <- AggloClust2D(pighic$data)
-  res2D 
-  summary(res2D)
+  res2D_counts <- AggloClust2D(pighic$data)
+  res2D_counts 
+  summary(res2D_counts)
+}
+```
+
+```{r AggloClust2D_diff}
+if (modules_avail) {
+  res2D_diff <- AggloClust2D(resdiff)
+  res2D_diff 
+  summary(res2D_diff)
 }
 ```
 
@@ -124,7 +136,7 @@ clusters.
 
 ```{r plotAggloClust2D}
 if (modules_avail) {
-  plot(res2D)
+  plot(res2D_diff)
 }
 ```
 
@@ -138,7 +150,7 @@ equal to $0.05$.
 
 ```{r postHoc}
 if (modules_avail) {
-  clusters <- res2D$clustering
+  clusters <- res2D_diff$clustering
   alpha <- 0.05
   resposthoc <- postHoc(resdiff, clusters, alpha)
   resposthoc

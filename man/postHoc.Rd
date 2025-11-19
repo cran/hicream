@@ -7,7 +7,7 @@
 \alias{plot.resposthoc}
 \title{Perform Post Hoc Inference}
 \usage{
-postHoc(resdiff, clusters, alpha)
+postHoc(resdiff, clusters, alpha, fill = FALSE, stepDown = TRUE)
 
 \method{print}{resposthoc}(x, ...)
 
@@ -23,6 +23,14 @@ function \code{\link{performTest}}.}
 
 \item{alpha}{A number between 0 and 1 at which the computed post hoc bounds
 will be valid.}
+
+\item{fill}{A boolean value. If TRUE (the default), enforce the total 
+number of tests to be \emph{p*(p+1)/2} by adding ones to the p-value vector 
+for non tested entries.}
+
+\item{stepDown}{A boolean value. If FALSE, the single step Simes method is
+used. If TRUE (the default), the step-down Simes method is used. The latter
+is more powerful when the signal is strong.}
 
 \item{x}{a \code{resposthoc} object to plot}
 
@@ -69,6 +77,7 @@ if (!is.null(res2D)) { # in case Python or modules are not available
 \author{
 Élise Jorge \email{elise.jorge@inrae.fr}\cr
 Sylvain Foissac \email{sylvain.foissac@inrae.fr}\cr
+Toby Dylan Hocking \email{toby.hocking@r-project.org}\cr
 Pierre Neuvial \email{pierre.neuvial@math.univ-toulouse.fr}\cr
 Nathalie Vialaneix \email{nathalie.vialaneix@inrae.fr}
 }

@@ -1,5 +1,5 @@
 ## ----loadLib------------------------------------------------------------------
-library("hicream")
+library("hicream", warn.conflicts = FALSE)
 # checking if Python and Python modules are available to avoid errors in vignette building
 modules_avail <- reticulate::py_available(initialize = TRUE) &&
   reticulate::py_module_available("sklearn") &&
@@ -35,24 +35,31 @@ summary(resdiff)
 
 ## ----plotPerformTest----------------------------------------------------------
 plot(resdiff)
-plot(resdiff, which_plot = "p.adj")
-plot(resdiff, which_plot = "logFC")
+plot(resdiff, whichPlot = "p.adj")
+plot(resdiff, whichPlot = "logFC")
 
-## ----AggloClust2D-------------------------------------------------------------
+## ----AggloClust2D_counts------------------------------------------------------
 if (modules_avail) {
-  res2D <- AggloClust2D(pighic$data)
-  res2D 
-  summary(res2D)
+  res2D_counts <- AggloClust2D(pighic$data)
+  res2D_counts 
+  summary(res2D_counts)
+}
+
+## ----AggloClust2D_diff--------------------------------------------------------
+if (modules_avail) {
+  res2D_diff <- AggloClust2D(resdiff)
+  res2D_diff 
+  summary(res2D_diff)
 }
 
 ## ----plotAggloClust2D---------------------------------------------------------
 if (modules_avail) {
-  plot(res2D)
+  plot(res2D_diff)
 }
 
 ## ----postHoc------------------------------------------------------------------
 if (modules_avail) {
-  clusters <- res2D$clustering
+  clusters <- res2D_diff$clustering
   alpha <- 0.05
   resposthoc <- postHoc(resdiff, clusters, alpha)
   resposthoc

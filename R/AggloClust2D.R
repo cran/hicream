@@ -1,6 +1,6 @@
 if (getRversion() >= "2.15.1") utils::globalVariables("computeClustering")
 
-#' @title Performs Constrained 2D Agglomerative Clustering
+#' @title Perform Constrained 2D Agglomerative Clustering
 #'
 #' @description This function performs a connectivity constrained 2D
 #' agglomerative clustering using \code{scikit-learn} function
@@ -11,7 +11,9 @@ if (getRversion() >= "2.15.1") utils::globalVariables("computeClustering")
 #'
 #' @param counts an object of class
 #' \code{\link[InteractionSet:interactions]{InteractionSet}} obtained from the
-#' function \code{\link{loadData}}.
+#' function \code{\link{loadData}} or an object of class
+#' \code{resdiff} obtained from
+#' function \code{\link{performTest}}.
 #' @param nbClust integer. Number of clusters to obtain. Set to \code{NULL} by
 #' default.
 #'
@@ -24,6 +26,7 @@ if (getRversion() >= "2.15.1") utils::globalVariables("computeClustering")
 #'
 #' @author Élise Jorge \email{elise.jorge@inrae.fr}\cr
 #' Sylvain Foissac \email{sylvain.foissac@inrae.fr}\cr
+#' Toby Dylan Hocking \email{toby.hocking@r-project.org}\cr
 #' Pierre Neuvial \email{pierre.neuvial@math.univ-toulouse.fr}\cr
 #' Nathalie Vialaneix \email{nathalie.vialaneix@inrae.fr}
 #'
@@ -33,18 +36,41 @@ if (getRversion() >= "2.15.1") utils::globalVariables("computeClustering")
 #' @importFrom Matrix sparseMatrix
 #' @examples
 #' data("pighic")
-#' \donttest{res2D <- AggloClust2D(pighic$data)
-#' if (!is.null(res2D)) {# in case Python or modules are not available
+#' \donttest{
+#' res2D <- AggloClust2D(pighic$data)
+#' if (!is.null(res2D)) { # in case Python or modules are not available
 #'   clusters <- res2D$clustering
 #'   print(res2D)
 #'   summary(res2D)
 #'   plot(res2D)
-#' }}
-#'
+#' }
+#' }
+
 AggloClust2D <- function(counts, nbClust = NULL) {
   call <- sys.call()
-  # transform data into count format
-  counts <- fromDGE2Counts(counts)
+  if (inherits(counts, "InteractionSet")) {
+    # clustering based on count data
+    counts <- fromDGE2Counts(counts)
+    # log-transform counts
+    counts[, -c(1:2)] <- log(counts[, -c(1:2)] + 1)
+  } else if (inherits(counts, "resdiff")) {
+    # clustering based on adjusted p.value and logFC
+    counts <- data.frame("bin1" = counts$region1, "bin2" = counts$region2,
+                         "p.adj" = counts$p.adj, "logFC" = counts$logFC)
+    ## normalize logFC to [0,1]
+    counts$logFC <- (counts$logFC - min(counts$logFC)) / 
+      (max(counts$logFC) - min(counts$logFC))
+    ## log-transform and normalize p.adj to [0,1]
+    counts$p.adj <- -log10(counts$p.adj)
+    counts$p.adj <- (counts$p.adj - min(counts$p.adj)) / 
+      (max(counts$p.adj) - min(counts$p.adj))
+  } else {
+    stop("'counts' must be of class 'InteractionSet' or 'resdiff'")
+  }
+  
+  if (!is.null(nbClust) && (!is.numeric(nbClust) || round(nbClust) != nbClust)) {
+    stop("'nbClust' must be NULL or an integer")
+  }
   # order counts
   counts <- counts[with(counts, order(bin1, bin2)), ]
   # build neighborhood relative to connectivity constraint
@@ -52,7 +78,7 @@ AggloClust2D <- function(counts, nbClust = NULL) {
   nbInt <- length(counts$bin1)
   # fill sparse neighboring matrix
   matNeighbors <- neighborsToMat(neighbors, nbInt)
-  
+
   # check python and module availability
   modules_avail <- reticulate::py_available(initialize = TRUE) &&
     reticulate::py_module_available("sklearn") &&
@@ -60,13 +86,17 @@ AggloClust2D <- function(counts, nbClust = NULL) {
     reticulate::py_module_available("pandas") &&
     reticulate::py_module_available("numpy")
   if (!modules_avail) {
-    message("Python or required Python modules are not available. ",
-            "Please install them to use this function.")
+    message(
+      "Python or required Python modules are not available. ",
+      "Please install them to use this function."
+    )
     return(NULL)
   }
-  
-  sourceFile <- file.path(system.file(package = "hicream"), "python", 
-                          "2Dclust.py")
+
+  sourceFile <- file.path(
+    system.file(package = "hicream"), "python",
+    "2Dclust.py"
+  )
   source_python(sourceFile)
   if (is.null(nbClust)) {
     res2D <- computeClustering(counts, matNeighbors)

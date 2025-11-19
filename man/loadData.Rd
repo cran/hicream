@@ -45,6 +45,7 @@ exData <- loadData(files, index, chromosome, normalize = TRUE)
 \author{
 Élise Jorge \email{elise.jorge@inrae.fr}\cr
 Sylvain Foissac \email{sylvain.foissac@inrae.fr}\cr
+Toby Dylan Hocking \email{toby.hocking@r-project.org}\cr
 Pierre Neuvial \email{pierre.neuvial@math.univ-toulouse.fr}\cr
 Nathalie Vialaneix \email{nathalie.vialaneix@inrae.fr}
 }

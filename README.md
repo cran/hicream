@@ -1,11 +1,11 @@
 ---
 title: "Introduction to hicream"
 author: "Elise Jorge, Sylvain Foissac, Pierre Neuvial, et Nathalie Vialaneix"
-date: "2025-04-02"
+date: "2025-11-11"
 output: 
   html_document:
     toc: yes
-    keep_md: yes
+    keep_md: TRUE
 vignette: >
   %\VignetteIndexEntry{Introduction to hicream}
   %\VignetteEngine{knitr::rmarkdown}
@@ -17,7 +17,7 @@ vignette: >
 
 `hicream` is an **R** package designed to perform Hi-c data differential 
 analysis. More specifically, it performs a pixel-level differential analysis 
-using `diffHic` and, using a two-dimensionnal connectivity constrained 
+using `diffHic` and, using a two-dimensional connectivity constrained 
 clustering, renders a post hoc bound on True Discovery Proportion for each 
 cluster. This method allows to identify differential genomic regions and 
 quantifies signal in those regions. 
@@ -149,7 +149,7 @@ summary(resdiff)
 ##  1st Qu.:0.0669302   1st Qu.:0.234256   1st Qu.:-0.034500  
 ##  Median :0.2751093   Median :0.525209   Median : 0.003099  
 ##  Mean   :0.3960997   Mean   :0.580792   Mean   : 0.022271  
-##  3rd Qu.:0.6924986   3rd Qu.:0.853823   3rd Qu.: 0.040990  
+##  3rd Qu.:0.6924986   3rd Qu.:0.853823   3rd Qu.: 0.040991  
 ##  Max.   :0.9537715   Max.   :0.953771   Max.   : 0.349596
 ```
 
@@ -164,23 +164,27 @@ plot(resdiff)
 ![](README_files/figure-html/plotPerformTest-1.png)<!-- -->
 
 ``` r
-plot(resdiff, which_plot = "p.adj")
+plot(resdiff, whichPlot = "p.adj")
 ```
 
 ![](README_files/figure-html/plotPerformTest-2.png)<!-- -->
 
 ``` r
-plot(resdiff, which_plot = "logFC")
+plot(resdiff, whichPlot = "logFC")
 ```
 
 ![](README_files/figure-html/plotPerformTest-3.png)<!-- -->
 
 
-## Perform two-dimensionnal connectivity-constrained clustering
+## Perform two-dimensional connectivity-constrained clustering
 
-The `AggloClust2D` function uses the output of `loadData` function in order to 
-build a connectivity graph of pixels and perform a two-dimensionnal hierarchical
-clustering under the connectivity constraint. The function renders a clustering 
+The `AggloClust2D` function uses either the output of `loadData` 
+or `resdiff` function. If the output of `loadData` is used, the clustering is 
+performed on the counts. Using the output of `resdiff` amounts to 
+performing clustering on adjusted $p$-values and log-fold-changes. 
+In both cases, a connectivity graph of pixels is built and a two-dimensional
+hierarchical clustering under the connectivity constraint is performed. 
+The function renders a clustering 
 corresponding to the optimal number of clusters found by the elbow heuristic. 
 However, a clustering corresponding to any other number of clusters (chosen by
 the user) can be obtained by specifying a value for the input argument 
@@ -188,8 +192,8 @@ the user) can be obtained by specifying a value for the input argument
 
 
 ``` r
-res2D <- AggloClust2D(pighic$data)
-res2D 
+res2D_counts <- AggloClust2D(pighic$data)
+res2D_counts 
 ```
 
 ```
@@ -210,7 +214,49 @@ res2D
 ```
 
 ``` r
-summary(res2D)
+summary(res2D_counts)
+```
+
+```
+## Summary of 2D constrained clustering results.
+```
+
+```
+##             Length Class  Mode     
+## merge       40     -none- numeric  
+## height      20     -none- numeric  
+## order       21     -none- numeric  
+## labels      21     -none- numeric  
+## method       1     -none- character
+## call         2     -none- call     
+## dist.method  1     -none- character
+```
+
+
+``` r
+res2D_diff <- AggloClust2D(resdiff)
+res2D_diff 
+```
+
+```
+## Tree obtained from constrained 2D clustering.
+## 
+## Call:
+## AggloClust2D(resdiff)
+## 
+## Cluster method   : Constrained HC with Ward linkage from sklearn 
+## Distance         : euclidean 
+## Number of objects: 21 
+## 
+## 
+## Optimal number of clusters: 3 
+## 
+## Clustering:
+## 1 1 1 1 3 1 1 1 1 1 ...
+```
+
+``` r
+summary(res2D_diff)
 ```
 
 ```
@@ -233,7 +279,7 @@ clusters.
 
 
 ``` r
-plot(res2D)
+plot(res2D_diff)
 ```
 
 ![](README_files/figure-html/plotAggloClust2D-1.png)<!-- -->
@@ -248,7 +294,7 @@ equal to $0.05$.
 
 
 ``` r
-clusters <- res2D$clustering
+clusters <- res2D_diff$clustering
 alpha <- 0.05
 resposthoc <- postHoc(resdiff, clusters, alpha)
 resposthoc
@@ -256,31 +302,21 @@ resposthoc
 
 ```
 ## Posthoc results.
-```
-
-```
-## Warning: `...` must be empty in `format.tbl()`
-## Caused by error in `format_tbl()`:
-## ! `...` must be empty.
-## ✖ Problematic argument:
-## • max = 10
-```
-
-```
+## 
 ## # A tibble: 21 × 10
-## # Groups:   clust [7]
+## # Groups:   clust [3]
 ##    region1 region2 clust TPRate p.value p.adj    logFC meanlogFC varlogFC
 ##      <int>   <int> <int>  <dbl>   <dbl> <dbl>    <dbl>     <dbl>    <dbl>
-##  1    1125    1125     1  0      0.732  0.854 -0.0183   -0.0546   0.00670
-##  2    1125    1126     1  0      0.0562 0.234 -0.163    -0.0546   0.00670
-##  3    1125    1127     5  0      0.800  0.884 -0.00890  -0.00890 NA      
-##  4    1125    1128     2  0      0.882  0.926 -0.00775   0.0595   0.0225 
-##  5    1125    1129     2  0      0.0313 0.234  0.275     0.0595   0.0225 
-##  6    1125    1130     2  0      0.269  0.525 -0.0659    0.0595   0.0225 
-##  7    1126    1126     1  0      0.692  0.854  0.0280   -0.0546   0.00670
-##  8    1126    1127     1  0      0.186  0.489 -0.0648   -0.0546   0.00670
-##  9    1126    1128     2  0      0.409  0.716  0.0364    0.0595   0.0225 
-## 10    1126    1129     4  0.167  0.251  0.525  0.0487    0.0447   0.0266 
+##  1    1125    1125     1      0  0.732  0.854 -0.0183   -0.00828  0.00467
+##  2    1125    1126     1      0  0.0562 0.234 -0.163    -0.00828  0.00467
+##  3    1125    1127     1      0  0.800  0.884 -0.00890  -0.00828  0.00467
+##  4    1125    1128     1      0  0.882  0.926 -0.00775  -0.00828  0.00467
+##  5    1125    1129     3      0  0.0313 0.234  0.275     0.275   NA      
+##  6    1125    1130     1      0  0.269  0.525 -0.0659   -0.00828  0.00467
+##  7    1126    1126     1      0  0.692  0.854  0.0280   -0.00828  0.00467
+##  8    1126    1127     1      0  0.186  0.489 -0.0648   -0.00828  0.00467
+##  9    1126    1128     1      0  0.409  0.716  0.0364   -0.00828  0.00467
+## 10    1126    1129     1      0  0.251  0.525  0.0487   -0.00828  0.00467
 ## # ℹ 11 more rows
 ## # ℹ 1 more variable: propPoslogFC <dbl>
 ```
@@ -299,14 +335,14 @@ summary(resposthoc)
 ##  1st Qu.:0.00000   1st Qu.:0.0669302   1st Qu.:0.234256   1st Qu.:-0.034500  
 ##  Median :0.00000   Median :0.2751093   Median :0.525209   Median : 0.003099  
 ##  Mean   :0.04762   Mean   :0.3960997   Mean   :0.580792   Mean   : 0.022271  
-##  3rd Qu.:0.16667   3rd Qu.:0.6924986   3rd Qu.:0.853823   3rd Qu.: 0.040990  
-##  Max.   :0.16667   Max.   :0.9537715   Max.   :0.953771   Max.   : 0.349596  
+##  3rd Qu.:0.00000   3rd Qu.:0.6924986   3rd Qu.:0.853823   3rd Qu.: 0.040991  
+##  Max.   :1.00000   Max.   :0.9537715   Max.   :0.953771   Max.   : 0.349596  
 ##   propPoslogFC   
-##  Min.   :0.0000  
-##  1st Qu.:0.5000  
-##  Median :0.5000  
+##  Min.   :0.4737  
+##  1st Qu.:0.4737  
+##  Median :0.4737  
 ##  Mean   :0.5238  
-##  3rd Qu.:0.6667  
+##  3rd Qu.:0.4737  
 ##  Max.   :1.0000
 ```
 
@@ -329,21 +365,21 @@ sessionInfo()
 ```
 
 ```
-## R version 4.4.3 (2025-02-28)
+## R version 4.5.1 (2025-06-13)
 ## Platform: x86_64-pc-linux-gnu
-## Running under: Ubuntu 24.04.2 LTS
+## Running under: Pop!_OS 22.04 LTS
 ## 
 ## Matrix products: default
 ## BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 
-## LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so;  LAPACK version 3.12.0
+## LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0
 ## 
 ## locale:
 ##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
-##  [3] LC_TIME=fr_FR.UTF-8        LC_COLLATE=en_US.UTF-8    
-##  [5] LC_MONETARY=fr_FR.UTF-8    LC_MESSAGES=en_US.UTF-8   
-##  [7] LC_PAPER=fr_FR.UTF-8       LC_NAME=C                 
+##  [3] LC_TIME=en_GB.UTF-8        LC_COLLATE=en_US.UTF-8    
+##  [5] LC_MONETARY=en_GB.UTF-8    LC_MESSAGES=en_US.UTF-8   
+##  [7] LC_PAPER=en_GB.UTF-8       LC_NAME=C                 
 ##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-## [11] LC_MEASUREMENT=fr_FR.UTF-8 LC_IDENTIFICATION=C       
+## [11] LC_MEASUREMENT=en_GB.UTF-8 LC_IDENTIFICATION=C       
 ## 
 ## time zone: Europe/Paris
 ## tzcode source: system (glibc)
@@ -352,59 +388,59 @@ sessionInfo()
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] hicream_0.0.1       reticulate_1.41.0.1
+## [1] hicream_0.0.2     reticulate_1.43.0
 ## 
 ## loaded via a namespace (and not attached):
 ##   [1] tidyselect_1.2.1            viridisLite_0.4.2          
-##   [3] farver_2.1.2                dplyr_1.1.4                
-##   [5] viridis_0.6.5               Biostrings_2.74.1          
-##   [7] bitops_1.0-9                RCurl_1.98-1.16            
-##   [9] fastmap_1.2.0               GenomicAlignments_1.42.0   
-##  [11] XML_3.99-0.18               digest_0.6.37              
+##   [3] dplyr_1.1.4                 farver_2.1.2               
+##   [5] viridis_0.6.5               Biostrings_2.76.0          
+##   [7] bitops_1.0-9                fastmap_1.2.0              
+##   [9] RCurl_1.98-1.17             GenomicAlignments_1.44.0   
+##  [11] XML_3.99-0.19               digest_0.6.37              
 ##  [13] lifecycle_1.0.4             capushe_1.1.2              
 ##  [15] statmod_1.5.0               magrittr_2.0.3             
-##  [17] compiler_4.4.3              rlang_1.1.5                
-##  [19] sass_0.4.9                  tools_4.4.3                
-##  [21] yaml_2.3.10                 rtracklayer_1.66.0         
-##  [23] knitr_1.50                  Rhtslib_3.2.0              
-##  [25] labeling_0.4.3              S4Arrays_1.6.0             
-##  [27] curl_6.2.1                  DelayedArray_0.32.0        
-##  [29] plyr_1.8.9                  abind_1.4-8                
-##  [31] BiocParallel_1.40.0         withr_3.0.2                
-##  [33] BiocGenerics_0.52.0         grid_4.4.3                 
-##  [35] stats4_4.4.3                colorspace_2.1-1           
-##  [37] Rhdf5lib_1.28.0             edgeR_4.4.2                
-##  [39] ggplot2_3.5.1               scales_1.3.0               
-##  [41] MASS_7.3-65                 SummarizedExperiment_1.36.0
-##  [43] cli_3.6.4                   rmarkdown_2.29             
-##  [45] crayon_1.5.3                auk_0.8.0                  
-##  [47] generics_0.1.3              metapod_1.14.0             
-##  [49] rstudioapi_0.17.1           reshape2_1.4.4             
-##  [51] rjson_0.2.23                httr_1.4.7                 
-##  [53] rhdf5_2.50.2                cachem_1.1.0               
-##  [55] stringr_1.5.1               splines_4.4.3              
-##  [57] zlibbioc_1.52.0             parallel_4.4.3             
-##  [59] restfulr_0.0.15             XVector_0.46.0             
+##  [17] compiler_4.5.1              rlang_1.1.6                
+##  [19] sass_0.4.10                 tools_4.5.1                
+##  [21] yaml_2.3.10                 rtracklayer_1.68.0         
+##  [23] knitr_1.50                  Rhtslib_3.4.0              
+##  [25] labeling_0.4.3              S4Arrays_1.8.1             
+##  [27] curl_7.0.0                  here_1.0.1                 
+##  [29] DelayedArray_0.34.1         plyr_1.8.9                 
+##  [31] RColorBrewer_1.1-3          abind_1.4-8                
+##  [33] BiocParallel_1.42.1         withr_3.0.2                
+##  [35] BiocGenerics_0.54.0         grid_4.5.1                 
+##  [37] stats4_4.5.1                Rhdf5lib_1.30.0            
+##  [39] edgeR_4.6.3                 ggplot2_3.5.2              
+##  [41] scales_1.4.0                MASS_7.3-65                
+##  [43] SummarizedExperiment_1.38.1 cli_3.6.5                  
+##  [45] rmarkdown_2.29              crayon_1.5.3               
+##  [47] auk_0.8.2                   generics_0.1.4             
+##  [49] metapod_1.16.0              rstudioapi_0.17.1          
+##  [51] reshape2_1.4.4              rjson_0.2.23               
+##  [53] httr_1.4.7                  rhdf5_2.52.1               
+##  [55] cachem_1.1.0                stringr_1.5.1              
+##  [57] splines_4.5.1               parallel_4.5.1             
+##  [59] XVector_0.48.0              restfulr_0.0.16            
 ##  [61] matrixStats_1.5.0           vctrs_0.6.5                
-##  [63] Matrix_1.7-3                jsonlite_1.9.1             
-##  [65] IRanges_2.40.1              S4Vectors_0.44.0           
-##  [67] dendextend_1.19.0           adjclust_0.6.10            
-##  [69] locfit_1.5-9.12             limma_3.62.2               
+##  [63] Matrix_1.7-4                jsonlite_2.0.0             
+##  [65] IRanges_2.42.0              S4Vectors_0.46.0           
+##  [67] dendextend_1.19.1           adjclust_0.6.10            
+##  [69] locfit_1.5-9.12             limma_3.64.3               
 ##  [71] jquerylib_0.1.4             glue_1.8.0                 
-##  [73] codetools_0.2-20            stringi_1.8.4              
-##  [75] gtable_0.3.6                GenomeInfoDb_1.42.3        
-##  [77] GenomicRanges_1.58.0        BiocIO_1.16.0              
-##  [79] UCSC.utils_1.2.0            munsell_0.5.1              
-##  [81] tibble_3.2.1                pillar_1.10.1              
-##  [83] rhdf5filters_1.18.0         csaw_1.40.0                
-##  [85] htmltools_0.5.8.1           GenomeInfoDbData_1.2.13    
-##  [87] BSgenome_1.74.0             R6_2.6.1                   
-##  [89] sparseMatrixStats_1.18.0    diffHic_1.38.0             
-##  [91] evaluate_1.0.3              lattice_0.22-6             
-##  [93] Biobase_2.66.0              png_0.1-8                  
-##  [95] Rsamtools_2.22.0            bslib_0.9.0                
-##  [97] Rcpp_1.0.14                 InteractionSet_1.34.0      
-##  [99] gridExtra_2.3               SparseArray_1.6.0          
-## [101] xfun_0.51                   MatrixGenerics_1.18.0      
-## [103] pkgconfig_2.0.3
+##  [73] codetools_0.2-20            stringi_1.8.7              
+##  [75] gtable_0.3.6                GenomeInfoDb_1.44.2        
+##  [77] GenomicRanges_1.60.0        BiocIO_1.18.0              
+##  [79] UCSC.utils_1.4.0            tibble_3.3.0               
+##  [81] pillar_1.11.0               rappdirs_0.3.3             
+##  [83] rhdf5filters_1.20.0         csaw_1.42.0                
+##  [85] htmltools_0.5.8.1           GenomeInfoDbData_1.2.14    
+##  [87] BSgenome_1.76.0             R6_2.6.1                   
+##  [89] sparseMatrixStats_1.20.0    diffHic_1.40.0             
+##  [91] rprojroot_2.1.1             evaluate_1.0.5             
+##  [93] lattice_0.22-7              Biobase_2.68.0             
+##  [95] png_0.1-8                   Rsamtools_2.24.0           
+##  [97] bslib_0.9.0                 Rcpp_1.1.0                 
+##  [99] InteractionSet_1.36.1       gridExtra_2.3              
+## [101] SparseArray_1.8.1           xfun_0.53                  
+## [103] MatrixGenerics_1.20.0       pkgconfig_2.0.3
 ```

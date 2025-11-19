@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from kneebow.rotor import Rotor
 from sklearn.cluster import AgglomerativeClustering
+from sklearn.cluster._agglomerative import _hc_cut
+
 
 def computeClustering(dataNorm, matNeighbors, nbClust=None):
     """
@@ -23,31 +25,26 @@ def computeClustering(dataNorm, matNeighbors, nbClust=None):
     
     ##Select only relevant columns
     dataNorm = dataNorm.iloc[:,2:]
-    # Data is log-transformed
-    data = np.log(dataNorm + 1)
 
     if nbClust is None:
       ward = AgglomerativeClustering(
           n_clusters=1, connectivity=matNeighbors, linkage="ward", 
           compute_distances=True
-      ).fit(data)
+      ).fit(dataNorm)
     else:
       ward = AgglomerativeClustering(
           n_clusters=nbClust, connectivity=matNeighbors, linkage="ward", 
           compute_distances=True, compute_full_tree=True
-      ).fit(data)
+      ).fit(dataNorm)
+      clustering = ward.labels_ + 1
     
     merge = pd.DataFrame(ward.children_)
     height = pd.DataFrame(ward.distances_)
     
     if nbClust is None:
       nbClust = getElbow(height)
-      ward = AgglomerativeClustering(
-          n_clusters=nbClust, connectivity=matNeighbors, linkage="ward", 
-          compute_distances=True, compute_full_tree=True
-      ).fit(data)
-
-    clustering = ward.labels_ + 1
+      nbInt = len(height) + 1
+      clustering = _hc_cut(nbClust, ward.children_, nbInt) + 1
     
     return merge, height, nbClust, clustering
 
@@ -68,7 +65,8 @@ def getElbow(height):
     rotor.fit_rotate(crit)
     elbowIndex = rotor.get_elbow_index()
     
-    nbInt = len(height)+1
+    nbInt = len(height) + 1
     nbOptClust = nbInt - (elbowIndex + 1)
     return nbOptClust
-  
+    
+    
