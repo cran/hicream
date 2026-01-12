@@ -1,6 +1,12 @@
-# Version 0.0.1  [2025-09-11]
+# Version 0.0.3 [2026-01-12]
 
-* Initial release on CRAN
+## Fixes
+
+* corrected name of TDP in results (TDP instead of TPRate)
+
+## Misc.
+
+* minor improvements in texts
 
 # Version 0.0.2 [2025-11-14]
 
@@ -11,3 +17,7 @@ method)
 
 * added a second version for 2D clustering based on Hi-C differential analysis
 results
+
+# Version 0.0.1  [2025-09-11]
+
+* Initial release on CRAN

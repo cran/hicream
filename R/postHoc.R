@@ -21,7 +21,7 @@
 #' \item{region1}{The first bin of the interaction.}
 #' \item{region2}{The second bin of the interaction.}
 #' \item{clust}{The cluster the interaction belongs to.}
-#' \item{TPRate}{The minimal post hoc true positive proportion of the cluster
+#' \item{TDP}{The minimal post hoc true discovery (positive) proportion of the cluster
 #' the interaction belongs to.}
 #' \item{p.value}{The p-value of the diffHic test.}
 #' \item{p.adj}{The adjusted p-value of the diffHic test.}
@@ -127,7 +127,7 @@ postHoc <- function(resdiff, clusters, alpha, fill = FALSE, stepDown = TRUE) {
   }))
   dfRes <- data.frame("int" = unlist(clusters))
   dfRes$clust <- clust
-  dfRes$TPRate <- postHocRes
+  dfRes$TDP <- postHocRes
   resdiff <- do.call(cbind.data.frame, resdiff)
   resdiff$X <- seq(1:length(resdiff$region1))
   dfRes <- merge(dfRes, resdiff, by.x = "int", by.y = "X")
@@ -189,12 +189,12 @@ summary.resposthoc <- function(object, ...) {
   cat("Summary of post hoc results.")
   cat("\n\n")
 
-  ## Only look at TPRate, p.vlaue, p.adj, logFC and propPoslogFC.
+  ## Only look at TDP, p.vlaue, p.adj, logFC and propPoslogFC.
   ## Print the dataframe
   dfSum <- object$dfres %>% ungroup()
   dfSum <- dfSum %>%
     select(
-      .data$TPRate, .data$p.value, .data$p.adj, .data$logFC,
+      .data$TDP, .data$p.value, .data$p.adj, .data$logFC,
       .data$propPoslogFC
     )
   summary(dfSum)

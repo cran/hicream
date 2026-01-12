@@ -1,7 +1,7 @@
 Package: hicream
 Title: HIC diffeREntial Analysis Method
-Version: 0.0.2
-Date: 2025-11-19
+Version: 0.0.3
+Date: 2026-01-12
 Maintainer: Elise Jorge <elise.jorge@inrae.fr>
 Authors@R: c(
     person("Elise", "Jorge", , "elise.jorge@inrae.fr", role = c("aut", "cre")),
@@ -37,7 +37,7 @@ Encoding: UTF-8
 RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2025-11-19 16:36:16 UTC; nathalie
+Packaged: 2026-01-12 07:29:03 UTC; nathalie
 Author: Elise Jorge [aut, cre],
   Sylvain Foissac [aut] (ORCID: <https://orcid.org/0000-0002-2631-5356>),
   Toby Hocking [aut] (ORCID: <https://orcid.org/0000-0002-3146-0865>),
@@ -49,4 +49,4 @@ Author: Elise Jorge [aut, cre],
   Nicolas Enjalbert-Courrech [ctb],
   Etienne Roquain [ctb]
 Repository: CRAN
-Date/Publication: 2025-11-19 17:20:02 UTC
+Date/Publication: 2026-01-12 14:10:08 UTC

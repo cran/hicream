@@ -45,7 +45,7 @@ entries:
 \item{region1}{The first bin of the interaction.}
 \item{region2}{The second bin of the interaction.}
 \item{clust}{The cluster the interaction belongs to.}
-\item{TPRate}{The minimal post hoc true positive proportion of the cluster
+\item{TDP}{The minimal post hoc true discovery (positive) proportion of the cluster
 the interaction belongs to.}
 \item{p.value}{The p-value of the diffHic test.}
 \item{p.adj}{The adjusted p-value of the diffHic test.}
