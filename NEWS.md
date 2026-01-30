@@ -1,3 +1,9 @@
+# Version 0.0.4 [2026-01-30]
+
+## Fixes
+
+* fixed a bug related to improper handling of pd.DataFrame in reticulate
+
 # Version 0.0.3 [2026-01-12]
 
 ## Fixes

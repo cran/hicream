@@ -46,6 +46,9 @@ def computeClustering(dataNorm, matNeighbors, nbClust=None):
       nbInt = len(height) + 1
       clustering = _hc_cut(nbClust, ward.children_, nbInt) + 1
     
+    merge=merge.to_numpy()
+    height=height.to_numpy()
+    
     return merge, height, nbClust, clustering
 
 def getElbow(height):

@@ -150,7 +150,7 @@ summary.res2D <- function(object, ...) {
   cat("Summary of 2D constrained clustering results.")
   cat("\n\n")
 
-  summary(object$tree)
+  return(object$tree)
 }
 
 #' @exportS3Method
